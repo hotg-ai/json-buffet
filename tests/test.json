@@ -31,7 +31,7 @@
       "negotiated_prices": [{
         "negotiated_type": "negotiated",
         "negotiated_rate": 20000.00,
-        "expiration_date": "2022-01-01",
+        "expiration_date": "2 ",
         "service_code": ["05", "06", "07"],
         "billing_class": "professional"
       }]

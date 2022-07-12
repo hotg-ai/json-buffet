@@ -1,4 +1,6 @@
+#define RAPIDJSON_SSE42
 #include <cstdlib>
+
 #define RAPIDJSON_NO_SIZETYPEDEFINE
 namespace rapidjson {
 typedef ::std::size_t SizeType;
@@ -31,6 +33,8 @@ struct MyHandler
   bool found_term = false;
   char *search_term;
   std::string result;
+  bool seen_npi_key = false;
+  bool seen_npi_array_start = false;
 
   std::map<DEPTH, std::vector<OFFSET_START>> depth_markers;
   std::map<OFFSET_START, OFFSET_END> extract_markers;
@@ -64,7 +68,7 @@ struct MyHandler
     if (!(find(extraction_markers.begin(), extraction_markers.end(), e) !=
           extraction_markers.end())) {
       extraction_markers.push_back(e);
-      render_vector(extraction_markers);
+     // render_vector(extraction_markers);
     }
   }
 
@@ -85,14 +89,14 @@ struct MyHandler
   void end_object_offset(OFFSET_END offset_end) {
 
     auto it = depth_markers.find(open_object_count_);
-    std::cerr << "DEPTH ADDING: " << open_object_count_ << std::endl;
+    // std::cerr << "DEPTH ADDING: " << open_object_count_ << std::endl;
     if (it == depth_markers.end()) { // no object open found at this depth
-      std::cerr << "SHOULDN'T HAPPEN for " << open_object_count_ << std::endl;
+      // std::cerr << "SHOULDN'T HAPPEN for " << open_object_count_ << std::endl;
     } else {
 
       OFFSET_START object_start = it->second.back();
-      std::cerr << "DEPTH ADDING: " << open_object_count_ << " " << object_start
-                << " " << offset_end << std::endl;
+      // std::cerr << "DEPTH ADDING: " << open_object_count_ << " " << object_start
+      //           << " " << offset_end << std::endl;
       extract_markers.insert(std::make_pair(object_start, offset_end + 1));
     }
   }
@@ -101,8 +105,8 @@ struct MyHandler
 
     start_object_offset(offset + 1);
     open_object_count_++;
-    std::cerr << "StartObject(" << open_object_count_ << ") at " << offset
-              << std::endl;
+    // std::cerr << "StartObject(" << open_object_count_ << ") at " << offset
+    //           << std::endl;
     return true;
   }
 
@@ -115,44 +119,54 @@ struct MyHandler
 
     // Wait until If no other open objects. Tag this with the first
     // startedObject
-    std::cerr << "EndObject(" << open_object_count_ << ", " << memberCount
-              << ") at " << offset << std::endl;
+    // std::cerr << "EndObject(" << open_object_count_ << ", " << memberCount
+    //           << ") at " << offset << std::endl;
     // If we have found the term, find the last
     return true;
   }
 
   bool Key(rapidjson::SizeType offset, const char *str,
            rapidjson::SizeType length, bool copy) {
-    std::cerr << "Key(" << str << ", " << length << ", " << std::boolalpha
-              << copy << ") at " << offset << std::endl;
+
+    // if (!seen_npi_key && strcmp(str, "npi") == 0) {
+    //   seen_npi_key = true;
+    // } else {
+    //   seen_npi_key = false;
+    // }
+    // std::cerr << "Key(" << str << ", " << length << ", " << std::boolalpha
+    //           << copy << ") at " << offset << std::endl;
     return true;
   }
   bool Bool(bool value) {
-    std::cerr << "Bool(" << value << ")" << std::endl;
+    // std::cerr << "Bool(" << value << ")" << std::endl;
     return true;
   }
   bool Uint(unsigned int value) {
-    std::cerr << "UInt(" << value << ")" << std::endl;
+    // std::cerr << "UInt(" << value << ")" << std::endl;
     return true;
   }
   bool Uint64(uint64_t value) {
-    std::cerr << "UInt64(" << value << ")" << std::endl;
+    // std::cerr << "UInt64(" << value << ")" << std::endl;
     return true;
   }
   bool Int(int value) {
-    std::cerr << "Int(" << value << ")" << std::endl;
+    // std::cerr << "Int(" << value << ")" << std::endl;
     return true;
   }
   bool Int64(int64_t value) {
-    std::cerr << "Int64(" << value << ")" << std::endl;
+    // std::cerr << "Int64(" << value << ")" << std::endl;
     return true;
   }
   bool Double(double value) {
-    std::cerr << "Double(" << value << ")" << std::endl;
+    // std::cerr << "Double(" << value << ")" << std::endl;
     return true;
   }
   bool RawNumber(const Ch *str, rapidjson::SizeType length, bool copy) {
 
+    if (seen_npi_array_start && seen_npi_key) {
+      //std::cerr << "SEEING NPI: " << str << std::endl;
+    }
+
     if (strcmp(search_term, str) == 0) {
       found_term = true; // do this in worker so we can do multiple terms later
       size_t depth = open_object_count_;
@@ -161,23 +175,23 @@ struct MyHandler
         parent = depth - max_pre_depth;
       }
       auto e = fetch_extraction_marker(parent);
-      std::cerr << e << std::endl;
+      // std::cerr << e << std::endl;
       add_extraction_marker(e);
 
-      std::cerr << "FOUND: " << str << "\nDEPTH: Obj(" << depth << ")"
-                << std::endl
-                << depth_markers.size() << std::endl;
+      // std::cerr << "FOUND: " << str << "\nDEPTH: Obj(" << depth << ")"
+                // << std::endl
+                // << depth_markers.size() << std::endl;
 
       //   extraction_markers.insert(
       //       std::make_pair(depth, &object_markers.at(depth)));
     }
-    std::cerr << "Number(" << str << ", " << length << ", " << std::boolalpha
-              << copy << ")" << std::endl;
+    // std::cerr << "Number(" << str << ", " << length << ", " << std::boolalpha
+    //           << copy << ")" << std::endl;
     return true;
   }
   bool String(const Ch *str, rapidjson::SizeType length, bool copy) {
-    std::cerr << "String(" << str << ", " << length << ", " << std::boolalpha
-              << copy << ")" << std::endl;
+    // std::cerr << "String(" << str << ", " << length << ", " << std::boolalpha
+    //           << copy << ")" << std::endl;
     if (strcmp(search_term, str) == 0) {
       found_term = true; // do this in worker so we can do multiple terms later
       size_t depth = open_object_count_;
@@ -186,12 +200,12 @@ struct MyHandler
         parent = depth - max_pre_depth;
       }
       auto e = fetch_extraction_marker(parent);
-      std::cerr << e << std::endl;
+      // std::cerr << e << std::endl;
       add_extraction_marker(e);
 
-      std::cerr << "FOUND: " << str << "\nDEPTH: Obj(" << depth << ")"
-                << std::endl
-                << depth_markers.size() << std::endl;
+      // std::cerr << "FOUND: " << str << "\nDEPTH: Obj(" << depth << ")"
+      //           << std::endl
+      //           << depth_markers.size() << std::endl;
 
       //   extraction_markers.insert(
       //       std::make_pair(depth, &object_markers.at(depth)));
@@ -201,17 +215,24 @@ struct MyHandler
 
   bool StartArray(rapidjson::SizeType offset) {
 
-    std::cerr << "StartArray(" << open_array_count_ << ") at " << offset
-              << std::endl;
+    //  if (seen_npi_key) {
+    //   seen_npi_array_start = true;
+    // } 
+
+    // std::cerr << "StartArray(" << open_array_count_ << ") at " << offset
+    //           << std::endl;
     open_array_count_++;
 
     return true;
   }
   bool EndArray(rapidjson::SizeType offset, rapidjson::SizeType elementCount) {
     --open_array_count_;
-    std::cerr << "EndArray(" << open_array_count_ << ", " << elementCount
-              << ") at " << offset << std::endl;
-    return true;
+    // std::cerr << "EndArray(" << open_array_count_ << ", " << elementCount
+    //           << ") at " << offset << std::endl;
+    // if (seen_npi_key || seen_npi_array_start) {
+    //   seen_npi_array_start = false;
+    //   seen_npi_key = false;
+    // }      
     return true;
   }
 
@@ -258,9 +279,9 @@ struct MyHandler
 
   void Result() {
 
-    render_map(depth_markers);
+    // render_map(depth_markers);
 
-    render_vector(extraction_markers);
+    // render_vector(extraction_markers);
 
     // extract JSON items from offset results
     std::cerr << "Extraction at contains (" << extraction_markers.size()
@@ -269,7 +290,7 @@ struct MyHandler
     for (auto offset_start_ptr : extraction_markers) {
       auto offset_start = offset_start_ptr;
       auto offset_end = fetch_offset_end(offset_start);
-      std::cout << "" << offset_start << ", "
+      std::cout << "tail -c +" << offset_start << " | head -c "
                 << offset_end - offset_start <<  std::endl;
     }
     std::cout << std::endl;
@@ -296,7 +317,7 @@ int main(int argc, char *argv[]) {
   // std::cerr << argc << std::endl;
   char *search_term = (char *)"7777777777";
   if (argc >= 2) {
-    search_term = argv[1];
+    search_term = argv[1]; 
   }
   if (argc >= 2) {
     max_pre_depth = atoi(argv[2]);

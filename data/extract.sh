@@ -1,0 +1,11 @@
+cat ../data/xxx/xaa | tail -c +17094 | head -c 87083  | jq > ../data/extracted/xaa/1.json
+cat ../data/xxx/xaa | tail -c +287579 | head -c 30768 | jq > ../data/extracted/xaa/2.json
+cat ../data/xxx/xaa | tail -c +395554 | head -c 30068 | jq > ../data/extracted/xaa/3.json
+cat ../data/xxx/xaa | tail -c +641876 | head -c 144132 | jq > ../data/extracted/xaa/4.json
+cat ../data/xxx/xaa | tail -c +834859 | head -c 104538  | jq > ../data/extracted/xaa/5.json
+cat ../data/xxx/xaa | tail -c +1236706 | head -c 156522  | jq > ../data/extracted/xaa/6.json 
+cat ../data/xxx/xaa | tail -c +1576046 | head -c 137605 | jq > ../data/extracted/xaa/7.json
+cat ../data/xxx/xaa | tail -c +1835195 | head -c 118523 | jq > ../data/extracted/xaa/8.json
+cat ../data/xxx/xaa | tail -c +1963644 | head -c 30562 | jq > ../data/extracted/xaa/9.json
+cat ../data/xxx/xaa | tail -c +2291610 | head -c 29862 | jq > ../data/extracted/xaa/10.json
+cat ../data/xxx/xaa | tail -c +2340407 | head -c 588276 | jq > ../data/extracted/xaa/11.json
