@@ -5,7 +5,7 @@ project(json-buffet LANGUAGES CXX)
 
 
 
-set(ARROW_VERSION "apache-arrow-0.17.0")
+set(ARROW_VERSION "apache-arrow-8.0.1")
 
 if (NOT "$ENV{PARQUET_ARROW_VERSION}" STREQUAL "")
     set(ARROW_VERSION "$ENV{PARQUET_ARROW_VERSION}")
@@ -13,7 +13,7 @@ endif()
 
 message(STATUS "Using Apache Arrow version: ${ARROW_VERSION}")
 
-set(ARROW_URL "https://github.com/apache/arrow/archive/${ARROW_VERSION}.tar.gz")
+set(ARROW_URL "https://github.com/apache/arrow/archive/refs/tags/${ARROW_VERSION}.tar.gz")
 
 set(ARROW_CMAKE_ARGS
     #Arrow dependencies
@@ -49,12 +49,20 @@ else ()
   set(ARROW_CMAKE_ARGS ${ARROW_CMAKE_ARGS} -DARROW_HDFS=OFF -DARROW_PARQUET=ON -DARROW_FILESYSTEM=ON -DARROW_DATASET=ON -DARROW_IPC=ON -DARROW_JSON=ON -DARROW_CSV=ON)
 endif()
 
+
+set(DUCKDB_CMAKE_ARGS -DEXTENSION_STATIC_BUILD=TRUE -DBUILD_PARQUET_EXTENSION=TRUE -DBUILD_JSON_EXTENSION=TRUE)
+
 ExternalProject_Add(arrow
     URL                ${ARROW_URL}
     CONFIGURE_COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}" ${ARROW_CMAKE_ARGS} "${CMAKE_CURRENT_BINARY_DIR}/arrow-prefix/src/arrow/cpp/"
     INSTALL_COMMAND   make DESTDIR=${CMAKE_CURRENT_BINARY_DIR}/arrow-prefix/src/arrow-install install
 )
 
+ExternalProject_Add(duckdb
+    URL                https://github.com/duckdb/duckdb/archive/refs/tags/v0.4.0.tar.gz
+    CONFIGURE_COMMAND "${CMAKE_COMMAND}" -G "${CMAKE_GENERATOR}"  ${DUCKDB_CMAKE_ARGS} "${CMAKE_CURRENT_BINARY_DIR}/duckdb-prefix/src/duckdb/"
+    INSTALL_COMMAND   make DESTDIR=${CMAKE_CURRENT_BINARY_DIR}/duckdb-prefix/src/duckdb-install install
+)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
