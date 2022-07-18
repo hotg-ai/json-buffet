@@ -4,10 +4,15 @@ json-buffet is a little tool to help parse streaming json. Directly view and pic
 
 ## Installation
 
-You need a recent C++ toolchain and CMake to use json-buffet
+You need
+* A recent C++ toolchain
+* CMake 3.4 or higher
+* Conan package manager: https://docs.conan.io/en/1.46/installation.html
+
 
 ```bash
 $ mkdir build && cd build
+$ conan install .. --build=missing
 $ cmake ..
 $ cmake --build .
 $ cat ../test.json | ./json-buffet
