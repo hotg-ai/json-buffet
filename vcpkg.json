@@ -1,0 +1,9 @@
+{
+  "name": "jsonbuffet",
+  "version-string": "0.1.0",
+  "dependencies": [{
+    "name": "arrow",
+    "default-features": false,
+    "features": [ "json", "flight", "parquet", "csv", "s3" ]
+  }]
+}
